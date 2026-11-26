@@ -1,0 +1,68 @@
+{
+  "CNQ.TO": [
+    {
+      "pillars": "E",
+      "kind": "confirmed",
+      "date": "2025-08-07",
+      "source": "Alberta Energy Regulator · 2025 ABAER 007",
+      "title": "Horizon tailings penalty upheld",
+      "summary": "The Alberta Energy Regulator upheld a CAD 278,000 penalty for failing to store a hazardous substance in a way that prevented animal contact. The ruling documents bird deaths in 2022.",
+      "url": "https://static.aer.ca/prd/documents/decisions/2025/2025-ABAER-007.pdf"
+    }
+  ],
+  "ENB.TO": [
+    {
+      "pillars": "E/S",
+      "kind": "open",
+      "date": "2026-10-28",
+      "source": "Canada Energy Regulator · Canada’s Pipeline System 2026",
+      "title": "Line 5 environmental review and Indigenous land dispute",
+      "summary": "The Canada Energy Regulator reported that an appeals court allowed the pipeline to continue operating and sent the case back to a lower court. It also reported that Michigan required a broader environmental review of the tunnel permit.",
+      "url": "https://cer-rec.gc.ca/en/data-analysis/facilities-we-regulate/canadas-pipeline-system/2026/crude-oil/index.html"
+    }
+  ],
+  "XOM": [
+    {
+      "pillars": "E",
+      "kind": "historical",
+      "date": "2021-04-13",
+      "source": "U.S. Department of Justice · Joliet refinery",
+      "title": "Historical air pollution compliance case at Joliet refinery",
+      "summary": "The U.S. Department of Justice announced a consent decree amendment addressing violations of the Clean Air Act and an earlier decree. It included about USD 1.52 million in penalties and emissions control upgrades.",
+      "url": "https://www.justice.gov/archives/opa/pr/us-government-and-state-illinois-announce-agreement-exxonmobil-s-joliet-refinery-reduce-air"
+    }
+  ],
+  "TD.TO": [
+    {
+      "pillars": "G",
+      "kind": "confirmed",
+      "date": "2024-10-10",
+      "source": "U.S. Department of Justice · TD Bank plea",
+      "title": "Anti-money laundering case involving U.S. subsidiary",
+      "summary": "TD Bank N.A. and its U.S. holding company pleaded guilty to related charges. The case raises material concerns about internal controls and compliance.",
+      "url": "https://www.justice.gov/usao-nj/pr/td-bank-pleads-guilty-bank-secrecy-act-and-money-laundering-conspiracy-violations-18b"
+    }
+  ],
+  "MSFT": [
+    {
+      "pillars": "E",
+      "kind": "disclosure",
+      "date": "2025-05-29",
+      "source": "Microsoft · 2025 Environmental Sustainability Report",
+      "title": "Reported total emissions exceeded the 2020 baseline",
+      "summary": "Microsoft reported that total Scope 1–3 emissions in FY24 increased 23.4% from the 2020 baseline, with Scope 3 emissions up 26%. These historical figures come from the company.",
+      "url": "https://blogs.microsoft.com/on-the-issues/2025/05/29/environmental-sustainability-report/"
+    }
+  ],
+  "AAPL": [
+    {
+      "pillars": "E",
+      "kind": "disclosure",
+      "date": "2024-04-18",
+      "source": "Apple · 2024 Environmental Progress Report announcement",
+      "title": "Reported emissions reductions since 2015",
+      "summary": "In its 2024 announcement, Apple reported that greenhouse gas emissions had fallen more than 55% from the 2015 baseline.",
+      "url": "https://www.apple.com/newsroom/2024/04/apple-cuts-greenhouse-emissions-in-half/"
+    }
+  ]
+}
