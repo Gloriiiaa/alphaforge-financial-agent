@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mateo · Company Research</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#142d28;background:#f4f5ef;line-height:1.55}
+*{box-sizing:border-box} body{margin:0} main{max-width:1080px;margin:auto;padding:36px 24px 56px}
+header{background:#173c34;color:#fff;padding:26px 32px;border-radius:18px;margin-bottom:18px}
+h1,h2,h3,p{margin:0 0 10px} h1{font-size:clamp(1.7rem,5vw,2.5rem)} h2{font-size:1.35rem} h3{font-size:1rem}
+header p{color:#cde0d6;margin-bottom:0}.panel{background:#fff;border:1px solid #dce4da;border-radius:14px;padding:20px;margin-bottom:14px}
+form,.grid,.metrics{display:grid;gap:14px} form{grid-template-columns:2fr 1fr 1fr auto;align-items:end}
+.grid{grid-template-columns:1fr 1fr}.metrics{grid-template-columns:repeat(4,1fr);margin:15px 0}
+label{display:block;font-weight:650} input,select,button{width:100%;height:43px;margin-top:4px;border-radius:8px;padding:0 9px;border:1px solid #aebdb6;background:#fff;color:inherit;font:inherit}
+button{background:#173c34;color:white;padding:0 17px;cursor:pointer}.examples{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.examples button{width:auto;background:#edf4ef;color:#173c34;border:none;height:34px}
+.metric{background:#eef4ef;border-radius:8px;padding:12px}.metric strong{display:block;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.muted,small{color:#52645e} .decision{border-left:5px solid #30775b}.exclude{border-left-color:#a73d26}
+a{color:#175e47} article{border-top:1px solid #dce4da;padding:12px 0 4px} details{margin-top:9px} summary{cursor:pointer}
+canvas{width:100%;height:240px;display:block}.legend{display:flex;gap:16px}.green{color:#087858}.blue{color:#566e9d}
+#status{color:#8e3325;margin:10px 0} ul{padding-left:22px}
+@media(max-width:700px){form,.metrics{grid-template-columns:1fr 1fr}.grid{grid-template-columns:1fr}}
+@media(max-width:415px){form{grid-template-columns:1fr}main{padding:18px 12px}}
+</style>
+<main>
+<header><h1>Mateo · Company Research</h1><p>AlphaForge AI Simulation · Moderate risk · 8–12 years · ESG focus</p></header>
+<section class="panel" aria-label="Analysis settings">
+<form id="form">
+<label>Company name or ticker<input id="company" list="companies" required maxlength="120" placeholder="e.g. CNQ.TO or Microsoft" autocomplete="off"></label>
+<datalist id="companies"></datalist>
+<label>Lookback period<select id="window"><option value="90">Last 90 days</option><option value="365" selected>Last 1 year</option><option value="1095">Last 3 years</option><option value="1826">Last 5 years</option></select></label>
+<label>Risk threshold<select id="risk"><option value="moderate">Moderate</option><option value="strict">Stricter</option></select></label>
+<button type="submit">Analyze Company</button>
+</form>
+<div class="examples"><button type="button" data-company="CNQ.TO">CNQ · Tailings incident</button><button type="button" data-company="ENB.TO">ENB · Line 5</button><button type="button" data-company="MSFT">MSFT · Emissions disclosure</button><button type="button" data-company="NVDA">NVDA · Market risk</button></div>
+</section>
+<p id="status" role="status"></p>
+<div id="report" aria-live="polite"></div>
+</main>
+<script>
+const el = id => document.getElementById(id);
+const pct = value => (100 * value).toFixed(1) + '%';
+const escape = value => String(value).replace(/[&<>"']/g, c => ({
+  '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+})[c]);
+const metric = (value,label) => '<div class="metric"><span>'+label+'</span><strong>'+value+'</strong></div>';
+let plotted;
+const offline = globalThis.MATEO_SNAPSHOT;
+async function query(path){
+  const response=await fetch(path);
+  const result=await response.json();
+  if(!response.ok) throw new Error(result.error);
+  return result;
+}
+function offlineReport(company,period,risk){
+  const key=company.toLowerCase().replace(/[^\p{L}\p{N}]/gu,'');
+  const ticker=offline.names[key];
+  if(!Object.hasOwn(offline.names,key)) throw new Error('Company not found. Choose a company from the list.');
+  return offline.reports[ticker][period][risk];
+}
+
+function chart(rows) {
+  const canvas = el('chart');
+  if (!canvas) return;
+  const w = canvas.clientWidth, h = canvas.clientHeight, dpr = window.devicePixelRatio || 1;
+  if (!w || !h) return;
+  canvas.width = w*dpr; canvas.height = h*dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr,dpr);
+  const values = rows.flatMap(row => row.slice(1));
+  const min = Math.min(...values) * 0.98, max = Math.max(...values) * 1.02;
+  const x = i => 50 + i/(rows.length-1)*(w-64);
+  const y = v => 12 + (max-v)/(max-min)*(h-40);
+  ctx.font = '11px system-ui'; ctx.fillStyle = '#52645e';
+  for(let i=0;i<=4;i++){
+    const v = min+(max-min)*i/4;
+    ctx.strokeStyle='#e0e7df';
+    ctx.beginPath();ctx.moveTo(46,y(v));ctx.lineTo(w-14,y(v));ctx.stroke();
+    ctx.fillText(v.toFixed(0),8,y(v)+4);
+  }
+  ctx.fillText(rows[0][0],50,h-5);
+  const last=rows.at(-1)[0];
+  ctx.fillText(last,w-14-ctx.measureText(last).width,h-5);
+  ['#087858','#566e9d'].forEach((color,j) => {
+    ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
+    rows.forEach((r,i)=>i ? ctx.lineTo(x(i),y(r[j+1])) : ctx.moveTo(x(i),y(r[j+1])));
+    ctx.stroke();
+  });
+}
+
+function render(r){
+  const {asset:a,market:m,esg:e,risk:k,decision:d}=r;
+  const sources=e.records.map(s=>'<article><h3>'+escape(s.pillars+' · '+s.title)+'</h3><p>'+
+    escape(s.summary)+'</p><small>'+escape(s.date)+' · <a href="'+escape(s.url)+
+    '" target="_blank" rel="noopener noreferrer">'+escape(s.source)+'</a></small></article>').join('');
+  el('report').innerHTML = `
+    <section class="panel decision ${d.verdict==='Excluded in simulation'?'exclude':''}">
+      <div class="muted">${escape(a.name)} · ${escape(a.ticker)} · ${escape(a.sector)}</div>
+      <h2>${escape(d.verdict)}</h2><p>${escape(d.rationale)}</p><p><strong>Next step</strong> ${escape(d.next)}</p>
+    </section>
+    <section class="panel"><h2>Historical performance</h2><div class="muted">${m.start} to ${m.end} · ${m.samples} shared trading days</div>
+      <div class="metrics">${metric(pct(m.price_change),'Price change · '+escape(a.currency))}
+      ${metric(pct(m.total),'Dividend-adjusted return · CAD')}
+      ${metric(pct(m.benchmark_total),escape(m.benchmark)+' · CAD')}
+      ${metric((m.excess*100).toFixed(1)+' pp','Vs. benchmark')}</div>
+      <div class="legend"><span class="green">● ${escape(a.ticker)}</span><span class="blue">● ${escape(m.benchmark)}</span><small>Indexed to 100 · CAD</small></div>
+      <canvas id="chart" role="img" aria-label="Historical performance of the stock and benchmark in CAD"></canvas>
+    </section>
+    <div class="grid">
+      <section class="panel"><h2>ESG · ${escape(e.status)}</h2>
+        ${sources || '<p>The local ESG database has no records for this company.</p>'}
+        <p><small>Missing ESG pillars · ${e.missing.join(', ') || 'Verify the status of the events'}</small></p>
+        <p>${escape(r.followup)}</p>
+      </section>
+      <section class="panel"><h2>Market risk · ${escape(k.level)}</h2>
+        <div class="metrics" style="grid-template-columns:1fr 1fr">${metric(pct(m.volatility),'Annualized volatility')}${metric(pct(m.drawdown),'Maximum drawdown')}</div>
+        <small>Demo thresholds · Volatility ${pct(k.vol_limit)} / Drawdown magnitude ${pct(k.dd_limit)}</small>
+        <ul>${k.reasons.map(reason=>'<li>'+escape(reason)+'</li>').join('')}</ul>
+        <h3>Hypothetical stress scenario</h3>
+        <p>A 10% stock price decline with a constant exchange rate reduces the position value in CAD by 10%.</p>
+        ${m.shock_fx_10===null?'':'<p>A 10% stock price decline and a 10% decline in USD/CAD reduce the position value in CAD by '+pct(-m.shock_fx_10)+'.</p>'}
+      </section>
+    </div>
+    <section class="panel"><h2>Data and methodology</h2>
+      <p>Price change uses split-adjusted closing prices. Dividend-adjusted return uses adjusted closing prices. USD assets are converted at the latest available USD/CAD rate for each trading day.</p>
+      <p>Volatility and drawdown use ${m.risk_samples} stock trading sessions. The benchmark represents the broad market. The lookback period describes historical data, while the investment horizon describes Mateo’s plans.</p>
+      <p>This is a datathon simulation. Historical performance does not predict future returns. ESG analysis uses a local sample of public evidence. Valuation, financials and portfolio holdings would help assess suitability.</p>
+      <details><summary>Price and exchange rate sources</summary><ul>${r.sources.map(s=>'<li>'+escape(s.source)+' · Retrieved on '+escape(s.retrieved_on)+' · '+escape(s.coverage)+'</li>').join('')}</ul></details>
+    </section>`;
+  plotted=m.chart;
+  chart(plotted);
+}
+
+let controller;
+async function run(){
+  controller?.abort();
+  const current=new AbortController();
+  controller=current;
+  el('status').textContent='Analyzing…';
+  el('report').replaceChildren();
+  plotted=undefined;
+  try{
+    const [company,period,risk]=['company','window','risk'].map(id=>el(id).value);
+    const qs=new URLSearchParams({company,window:period,risk});
+    const result=offline ? offlineReport(company,period,risk) :
+      await query('/api/analyze?'+qs);
+    if (controller!==current) return;
+    render(result);
+    el('status').textContent='';
+  }catch(error){
+    if (controller===current) el('status').textContent=error.message;
+  }
+}
+el('form').addEventListener('submit',event=>{event.preventDefault();run();});
+document.querySelectorAll('[data-company]').forEach(button=>button.addEventListener('click',()=>{
+  el('company').value=button.dataset.company;run();
+}));
+window.addEventListener('resize',()=>{if(plotted)chart(plotted);});
+(offline ? Promise.resolve(offline.companies) : query('/api/companies')).then(companies=>{
+  companies.forEach(company=>{
+    const option=document.createElement('option');option.value=company.ticker;
+    option.label=company.name;el('companies').append(option);
+  });
+}).catch(()=>{});
+el('company').value='CNQ.TO';
+run();
+</script>
+</html>
